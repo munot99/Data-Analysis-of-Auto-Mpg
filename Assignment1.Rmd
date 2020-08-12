@@ -1,0 +1,318 @@
+---
+title: "Assignment 1"
+author: "Pranav Munot 18060222084"
+date: "August 12, 2020"
+subtitle: "Analysis of Auto MPG Data Set"
+output: html_document
+---
+
+
+#AUTO MPG DATA SET ANALYSIS
+We will be using Auto-MPG data set for this assignment.
+```{r include=FALSE}
+knitr::opts_chunk$set(comment = NA , warning = NA,message = FALSE)
+```
+
+```{r include=FALSE}
+library(dplyr)
+library(ggplot2)
+library(lmtest)
+library(car)
+```
+
+```{r include=FALSE}
+mydata <-read.csv("/Users/vivek/Downloads/auto-mpg.csv")
+head(mydata)
+```
+
+```{r}
+dim(mydata)
+glimpse(mydata)
+```
+
+```{r echo=TRUE,results= 'hide'}
+is.na(mydata)
+print("For convienice the output is hidden")
+```
+
+The data shows us the 9 variables in it which consitute of 392 observations within the data.
+For our analysis we will be selecting 350 Randomly generated observation without any missing values within our sample size.
+```{r}
+mydata<-na.omit(mydata)
+attach(mydata)
+set.seed(22084)
+mysample <-mydata[sample(nrow(mydata),350,),]
+detach(mydata)
+attach(mysample)
+head(mysample)
+dim(mysample)
+glimpse(mysample)
+summary(mysample)
+```
+##Observing The Data
+
+Lets observe the sample data graphically
+For our analysis we have chosen 6 variables **1.MPG 2.Cylinders 3. Displacement 4. Horsepower 5. Weight 6. Acceleration**
+```{r fig.height = 20, fig.width = 20}
+pairs(~mpg + cylinders + displacement + horsepower + 
+         weight + acceleration) 
+```
+```{r}
+ggplot(data = mysample,aes(x = mpg))+
+  geom_histogram(col = "black")
+```
+
+The MPG histogram shows that the data is positively skewed
+```{r}
+ggplot(mysample,aes(x = cylinders))+
+  geom_bar(col = "black")
+```
+
+Most cars have 4 cylinders followed by 8 cylinders.
+```{r}
+ggplot(mysample,aes(x = weight))+
+  geom_histogram(col = "black")
+```
+
+Weight has a positively skewed data 
+```{r}
+ggplot(mysample,aes(x = horsepower))+
+  geom_boxplot(col = "black")
+```
+
+Box plot of Horsepower shows the positively skewed data.
+```{r}
+ggplot(mysample,aes(x = displacement, y = mpg))+
+  geom_point(col = "red")
+
+```
+```{r}
+ggplot(mysample,aes(x = acceleration))+
+  geom_histogram(col = "black")
+
+```
+
+```{r}
+ggplot(mysample, aes(y = mpg, x = weight)) +
+  geom_point(aes(color = cylinders))
+
+```
+
+As the number of cylinders are increasing so is the weight and is decreasing the MPG
+
+##Single Variable Model
+Let us Run Single Variable Models with the selected variables keeping MPG as the dependent Variable
+```{r echo=TRUE,results= 'hide'}
+attach(mysample)
+
+l_mpg<-log(mpg)
+l_weight<-log(weight)
+
+```
+
+Model 1 is $MPG$=$B0$+$B1X1$ where $X1=Cylinders$
+```{r}
+attach(mysample)
+model1 <-lm(data = mysample, formula = mpg ~ cylinders )
+summary(model1)
+
+ggplot(mysample,aes(mpg,cylinders))+geom_point()+geom_smooth(method = "lm", se = FALSE)
+
+
+```
+
+The model and variable is highly significant model(p-value: < 2.2e-16), There is a negative  relation between the dependent and regressor variable , with every unit increase of cylinder, mpg   decreases by 3.53.
+
+Model 2 is $MPG$=$B0$+$B1X2$ where $X2=Acceleration$
+
+```{r}
+model2 <-lm(data = mysample, formula = mpg ~ acceleration)
+summary(model2)
+ggplot(mysample,aes(mpg,acceleration))+geom_point()+geom_smooth(method = "lm", se = FALSE ,col= "darkgreen")
+```
+
+The model and variable is highly significant model(p-value: < 2.2e-16), There is a positive relation between the dependent and regressor variable , with every unit increase of acceleration, mpg   increases by 1.21.
+
+Model 3 is $MPG$=$B0$+$B1X3$ where $X3=Displacement$
+```{r}
+model3 <-lm(data = mysample, formula = mpg ~ displacement)
+summary(model3)
+ggplot(mysample,aes(mpg,displacement))+geom_point()+geom_smooth(method = "lm", se = FALSE)
+```
+
+The model and variable is highly significant model(p-value: < 2.2e-16), There is a negative relation between the dependent and regressor variable , with every unit increase of displacement, mpg decreases by .059.
+
+Model 4 is $MPG$=$B0$+$B1X4$ where $X4=Horsepower$
+```{r}
+model4 <-lm(data = mysample, formula = mpg ~ horsepower)
+summary(model4)
+ggplot(mysample,aes(mpg,horsepower))+geom_point()+geom_smooth(method = "lm", se = FALSE, col = "darkred")
+```
+
+The model and variable is highly significant model(p-value: < 2.2e-16), There is a negative relation between the dependent and regressor variable , with every unit increase of horsepower, mpg decreases by .15.
+
+Model 5 is $MPG$=$B0$+$B1X5$ where $X5=Weights$
+```{r}
+model5 <-lm(data = mysample, formula = mpg ~ weight)
+summary(model5)
+ggplot(mysample,aes(mpg,weight))+geom_point()+geom_smooth(method = "lm", se = FALSE)
+```
+
+The model and variable is highly significant model(p-value: < 2.2e-16), There is a negative relation between the dependent and regressor variable , with every unit increase of weight, mpg decreases by .007.
+
+##Residual vs Fitted
+**MPG ~ Cylinder**
+```{r}
+plot(model1,which = 1:1)
+```
+
+The model shows that some form of linearity as the observed line is close to 0 and only deviates around the last few observation , showing that model is well fitted.
+
+**MPG ~ Acceleration**
+```{r}
+plot(model2,which = 1:1)
+```
+
+The model shows that some form of linearity as the observed line is close to 0 and only deviates around the last few observation , showing that model is well fitted.
+
+**MPG ~ Displacement**
+```{r}
+plot(model3,which = 1:1)
+```
+
+The model shows that there is curvaturer, the line is close to 0 yes there is slight non-linearity. The model fits but does not show equal distribution of residual. 
+
+**MPG ~ Horsepower**
+```{r}
+plot(model4,which = 1:1)
+```
+
+The model shows that there is curvaturer, the line touches 0, there is slight non-linearity. The model fits but does not show equal distribution of residual. 
+
+**MPG ~ Weight**
+```{r}
+plot(model5,which = 1:1)
+```
+
+The model shows that some form of linearity as the observed line is close to 0 and only deviates around the first few observation , showing that model is well fitted.
+
+##Ramsey RESET Test
+**MPG ~ Cylinders**
+```{r}
+resettest(model1,power = 2,type = "fitted")
+resettest(model1,power = 3,type = "fitted")
+resettest(model1,power = 2:3,type = "fitted")
+```
+
+The Reset Statistic is significant therefore model is underfitted
+
+**MPG ~ Acceleration**
+```{r}
+resettest(model2,power = 2,type = "fitted")
+resettest(model2,power = 3,type = "fitted")
+resettest(model2,power = 2:3,type = "fitted")
+```
+
+The Reset Statistic is significant for (r=2,r=3) sq and cube at 5 % significance therefore model is underfitted.
+
+**MPG ~ Displacement**
+```{r}
+resettest(model3,power = 2,type = "fitted")
+resettest(model3,power = 3,type = "fitted")
+resettest(model3,power = 2:3,type = "fitted")
+```
+The Reset Statistic is significant therefore model is underfitted
+
+**MPG ~ Horsepower**
+```{r}
+resettest(model4,power = 2,type = "fitted")
+resettest(model4,power = 3,type = "fitted")
+resettest(model4,power = 2:3,type = "fitted")
+```
+
+The Reset Statistic is significant therefore model is underfitted
+
+**MPG ~ Weight**
+```{r}
+resettest(model5,power = 2,type = "fitted")
+resettest(model5,power = 3,type = "fitted")
+resettest(model5,power = 2:3,type = "fitted")
+```
+
+The Reset Statistic is significant therefore model is underfitted
+ 
+##Multivariate Model
+
+Let us Run MultiVariate Models with the selected variables keeping MPG as the dependent Variable.
+
+Let model be $MPG= B0+B1X1+B2X2+B3X3+B4X4+B5X5$, We have already specified the $Xn$ where $n[1,5]$
+```{r}
+lm_multi<-lm(data = mysample, formula = mpg ~ cylinders+
+               displacement +horsepower+weight +acceleration)
+summary(lm_multi)
+
+plot(lm_multi)
+
+```
+
+The model and variable is highly significant model(p-value: < 2.2e-16), There is a negative relation between the dependent and regressor variables. Both weight and horsepower are significant even at <1% significance and horsepower is significant when we consider 10% significane. Even though Displacement, Cylinders and Acceleration are insignificant as they have p value >10% the model shows high level of overall signifance.This shows that the model has multicollinearity.
+
+Therefore to make this model better we will first find the collinearity in the model and further using VIF will remove he variable with highest variation to see if we can find a best fit model by using ANOVA.
+
+```{r}
+library(corrplot)
+x_cor=cor(mysample[,c(2:6)])
+corrplot(x_cor)
+vif(lm_multi)
+```
+Displacement having highest VIF value shall be discared to create another Model.
+
+Multivariate model without displacement is $MPG= B0+B1X1+B2X2+B3X4+B4X5$, 
+
+**Multivarate Model 2**
+```{r}
+lm_multi2<-lm(data = mysample, formula = mpg ~ cylinders+
+                acceleration +horsepower+weight)
+summary(lm_multi2)
+
+plot(lm_multi2)
+```
+The model is significant (p-value: < 2.2e-16) ,even without variable of Displacement 
+
+We will now use ANOVA to get F value to check our Hypothesis 
+$H0 <- Model~1~is~significant$
+$H1 <- Model~1~is~not~significant$
+```{r}
+anova(lm_multi,lm_multi2)
+```
+
+Given that F value is insignifanct therefore we do not reject our null hypothesis therefore $Model~1$ is the best fit model.
+
+##Checking for Hetroscadicity 
+
+We will use Breusch-Pagan Test
+```{r}
+bptest(lm_multi)
+```
+
+As BP test is significant we can see that there is Hetroscadicity 
+
+We therefore we use log transformation to remove Hetroscadicity from our model 
+Lets make another model where,
+l_mpg = log(mpg),l_weight = log(weight)
+lets Replace these variables in place of $MPG$ and $Weight$ in Multivariate Model 1
+Therefore the New Model Would be 
+
+$Log(MPG)= B0+B1X1+B2X2+B3X3+B4X4+B5Log(Weight)$
+```{r}
+lm_multi3 <-lm(data = mysample, formula = l_mpg ~ 
+                 cylinders+acceleration +horsepower+
+                 displacement+l_weight)
+summary(lm_multi3)
+plot(lm_multi3)
+```
+We can see that using log transformation has made variable Cylinders significant at 10% significance.
+
+<center>
+![**The end**]
+</center>
